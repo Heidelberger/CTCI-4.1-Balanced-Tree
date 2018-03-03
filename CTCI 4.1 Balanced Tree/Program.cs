@@ -10,6 +10,20 @@ namespace CTCI_4._1_Balanced_Tree
     {
         static void Main(string[] args)
         {
+            PrintHeaderMsg(4, 1, "Check if Binary Tree is Balanced");
+
+            
+
+
+            Console.ReadLine();
+        }
+
+
+        private static void PrintHeaderMsg(int chapter, int problem, string title)
+        {
+            Console.WriteLine("Cracking the Coding Interview");
+            Console.WriteLine("Chapter " + chapter + ", Problem " + chapter + "." + problem + ": " + title);
+            Console.WriteLine();
         }
     }
 }
