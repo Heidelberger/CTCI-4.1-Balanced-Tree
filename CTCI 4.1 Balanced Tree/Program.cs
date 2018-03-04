@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace CTCI_4._1_Balanced_Tree
 {
@@ -9,23 +10,97 @@ namespace CTCI_4._1_Balanced_Tree
         {
             PrintHeaderMsg(4, 1, "Check if Binary Tree is Balanced");
 
-            Node treeBalanced = CreateBalancedTree(7);
-            PrintNodes(treeBalanced);
-            if (CheckBalance(treeBalanced) == true)
-                Console.WriteLine("Tree is balanced.");
-            else
-                Console.WriteLine("Tree is unbalanced.");
+            Node treeBalanced = CreateBalancedTree(22);
+            //PrintNodes(treeBalanced);
 
-            Console.WriteLine(); Console.WriteLine(); Console.WriteLine();
+            bool result = false;
 
-            Node treeUnbalanced = CreateUnbalancedTree(7);
-            PrintNodes(treeUnbalanced);
-            if (CheckBalance(treeUnbalanced) == true)
-                Console.WriteLine("Tree is balanced.");
-            else
-                Console.WriteLine("Tree is unbalanced.");
+            Stopwatch sw = new Stopwatch();
             
+            sw.Restart();
+            result = CheckBalance_N(treeBalanced);
+            sw.Stop();
+            if (result == true)
+                Console.WriteLine("O(N)     Tree is balanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+            else
+                Console.WriteLine("O(N)     Tree is unbalanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+
+            sw.Restart();
+            result = CheckBalance_NlogN(treeBalanced);
+            sw.Stop();            
+            if (result == true)
+                Console.WriteLine("O(NlogN) Tree is balanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+            else
+                Console.WriteLine("O(NlogN) Tree is unbalanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+
+            Console.WriteLine();
+
+            Node treeUnbalanced = CreateUnbalancedTree(treeBalanced);
+            //PrintNodes(treeUnbalanced);
+
+            sw.Restart();
+            result = CheckBalance_N(treeUnbalanced);
+            sw.Stop();
+            if (result)
+                Console.WriteLine("O(N)     Tree is balanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+            else
+                Console.WriteLine("O(N)     Tree is unbalanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+
+            sw.Restart();
+            result = CheckBalance_NlogN(treeUnbalanced);
+            sw.Stop();
+            if (result == true)
+                Console.WriteLine("O(NlogN) Tree is balanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+            else
+                Console.WriteLine("O(NlogN) Tree is unbalanced. Elapsed time: " + sw.Elapsed.ToString("mm\\:ss\\.ffff"));
+
             Console.ReadLine();
+        }
+
+        private static bool CheckBalance_N(Node passedNode)
+        {
+            if (CheckHeight_N(passedNode) == -1)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// Recursively check height on every node
+        /// Quit immediately if any branch is unbalanced
+        /// 
+        /// Runs in O(N): must touch every node worst-case
+        /// 
+        /// Requires O(H) memory, where H is height of tree 
+        /// Every level requires a recursive call, therefore a frame on the stack.
+        /// 
+        /// </summary>
+        /// <param name="passedNode"></param>
+        /// <returns></returns>
+        private static int CheckHeight_N(Node passedNode)
+        {
+            // base case
+            if (passedNode == null)
+                return 0;
+
+            // check _A branch
+            int height_A = CheckHeight_N(passedNode.child_A);
+            if (height_A == -1)
+                return -1;
+
+            // check _B branch
+            int height_B = CheckHeight_N(passedNode.child_B);
+            if (height_B == -1)
+                return -1;
+
+            // compare _A and _B branches
+            int height_diff = Math.Abs(height_A - height_B);
+            if (height_diff > 1)
+                return -1;
+
+            // return height of current location
+            return Math.Max(height_A, height_B) + 1;
         }
 
         /// <summary>
@@ -34,22 +109,28 @@ namespace CTCI_4._1_Balanced_Tree
         /// 
         /// By calling GetTreeHeight() at each level, we can discover if any branch is unbalanced
         /// 
+        /// Inefficient because CheckBalance_NlogN() calls GetTreeHeight_NlogN() on child nodes, but then
+        /// recurses on child nodes, again calling GetTreeHeight_NlogN() on child nodes.
+        /// 
+        /// Runs in O(NlogN) time.  Each child node is hit once for every node above it.
+        /// 
+        /// 
         /// </summary>
         /// <param name="passedNode"></param>
         /// <returns></returns>
-        private static bool CheckBalance(Node passedNode)
+        private static bool CheckBalance_NlogN(Node passedNode)
         {
             // "balanced" means: heights of 2 subtrees of any node never differ by more than one
 
             if (passedNode == null)
                 return true;
 
-            int heightDiff = GetTreeHeight(passedNode.child_A) - GetTreeHeight(passedNode.child_B);
+            int heightDiff = GetTreeHeight_NlogN(passedNode.child_A) - GetTreeHeight_NlogN(passedNode.child_B);
 
             if (Math.Abs(heightDiff) > 1)
                 return false;
 
-            return ((CheckBalance(passedNode.child_A)) && (CheckBalance(passedNode.child_B)));            
+            return ((CheckBalance_NlogN(passedNode.child_A)) && (CheckBalance_NlogN(passedNode.child_B)));            
         }
 
         /// <summary>
@@ -61,17 +142,17 @@ namespace CTCI_4._1_Balanced_Tree
         /// </summary>
         /// <param name="passedNode"></param>
         /// <returns></returns>
-        private static int GetTreeHeight(Node passedNode)
+        private static int GetTreeHeight_NlogN(Node passedNode)
         {
             if (passedNode == null)
                 return 0;
 
-            return Math.Max(GetTreeHeight(passedNode.child_A), GetTreeHeight(passedNode.child_B)) + 1;
+            return Math.Max(GetTreeHeight_NlogN(passedNode.child_A), GetTreeHeight_NlogN(passedNode.child_B)) + 1;
         }
 
         private static Node CreateUnbalancedTree(int depth)
         {
-            Node root = CreateBalancedTree(depth - 2);
+            Node root = CreateBalancedTree(depth);
 
             Stack<Node> s = new Stack<Node>();
 
@@ -87,8 +168,32 @@ namespace CTCI_4._1_Balanced_Tree
             return root;
         }
 
+        private static Node CreateUnbalancedTree(Node passedNode)
+        {
+            if (passedNode == null)
+                passedNode = CreateBalancedTree(1);
+
+            Console.WriteLine("Adding 5 nodes to unbalance the tree.");
+
+            Stack<Node> s = new Stack<Node>();
+
+            // Add nodes in the middle of the tree
+            Node temp = passedNode.child_B ?? passedNode;
+            while (temp.child_A != null)
+            {
+                temp = temp.child_A;
+            }
+
+            //create 3 new levels under this one child node
+            temp.child_A = new Node(new Node(new Node(), new Node()), new Node());
+
+            return passedNode;
+        }
+
         private static Node CreateBalancedTree(int depth)
         {
+            Console.Write("Creating tree: " + depth + " levels = " + Math.Pow(2.0, depth) + " nodes.");
+
             Node root = new Node();
 
             Queue<Node> q = new Queue<Node>();
@@ -114,6 +219,9 @@ namespace CTCI_4._1_Balanced_Tree
                     q.Enqueue(children.Dequeue());
                 }
             }
+
+            Console.Write("...done.");
+            Console.WriteLine();
 
             return root;
         }
